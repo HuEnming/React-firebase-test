@@ -116,8 +116,6 @@ class UserUpdate extends Component {
         //     });
     }
     render() {
-        let firstName = this.state.firstName
-        let lastName = this.state.lastName
         return (
             <div className="container">
                 <form onSubmit={this.handleSubmit} className="white">

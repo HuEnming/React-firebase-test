@@ -15,21 +15,11 @@ class MealList extends Component {
             if (user) {
                 //this.setState({ userId: user.uid })
                 let mealLsit = []
-                let mealsRef = firebase.database().ref().child('meals')
+                firebase.database().ref().child('meals')
                     .orderByChild('userId').equalTo(user.uid).on('child_added', (snapshot) => {
-                        mealLsit.push(snapshot.val())
-                        this.setState((preState) => ({ ...preState, mealLsit }))
-                    })
-                
-                console.log(firebase.database().ref().child('meals'))
-                let foodRef = firebase.database().ref('meals')
-                    .orderByChild('userId').equalTo(user.uid).on('value', (snapshot) => {
-                        //mealLsit.push(snapshot.val())
-                        //this.setState((preState) => ({ ...preState, mealLsit }))
-                        Object.keys(snapshot.val()).map((key, index) => (
-                            console.log(snapshot.val())
-                        ))
-                        
+                        mealLsit.push({ ...snapshot.val(), mealId: snapshot.key })
+                        //console.log(snapshot.val())
+                        this.setState((preState) => ({ ...preState, mealLsit, }))
                     })
             } else {
                 this.props.history.push('/');
@@ -42,15 +32,25 @@ class MealList extends Component {
     }
 
     handleDelete = (foodId) => {
-        console.log(foodId)
-        firebase.database().ref(`meals/${foodId}`).remove().catch(error => {
-            this.setState({ error })
-        })
+        // console.log(foodId)
+        // firebase.database().ref(`meals/${foodId}`).on('child_removed', function(data) {
+        //     console.log(data)
+        //firebase.database().ref(`meals/${foodId}`).remove()
+        //   })
+        firebase.database().ref(`meals/${foodId}`).remove()
+            .then(() => {
+                let mealLsit = this.state.mealLsit.filter(x => x.mealId !== foodId)
+                this.setState({ mealLsit })
+            }
+            ).catch(error => {
+                this.setState({ error })
+            })
+
     }
 
     render() {
         const { mealLsit } = this.state
-        console.log(mealLsit)
+        //console.log(mealLsit)
         if (mealLsit) {
             return (
                 <div className="row" >
@@ -58,7 +58,7 @@ class MealList extends Component {
                         <div className="col s12 m2" key={index}>
                             <div className="card">
                                 <div className="card-image">
-                                    <img src={food.imgUrl}></img>
+                                    <img src={food.imgUrl} alt={food.foodName}></img>
                                     <span className="card-title">{food.foodName}</span>
                                 </div>
                                 <div className="card-content">
@@ -71,7 +71,7 @@ class MealList extends Component {
                                     }
                                 </div>
                                 <div className="card-action">
-                                    <a href="#">Detial</a><a href="#" onClick={() => this.handleDelete(food.foodId)}>Delete</a>
+                                    <a href="/#">Detial</a><a href="/#" onClick={() => this.handleDelete(food.mealId)}>Delete</a>
                                 </div>
                             </div>
                         </div>

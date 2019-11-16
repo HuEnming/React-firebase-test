@@ -5,7 +5,6 @@ import React, { Component } from 'react'
 //import { FirebaseContext } from '../firebase'
 //import { withFirebase } from '../firebase/firebase'
 //import PropTypes from 'prop-types'
-
 import firebase from '../firebase/firebase'
 
 class LogIn extends Component {
@@ -15,10 +14,54 @@ class LogIn extends Component {
         password: '',
         error: null
     }
+
     handleChange = (e) => {
         this.setState({
             [e.target.id]: e.target.value
         })
+    }
+
+    // handleGoogleSignIn = e => {
+    //     var provider = new firebase.auth.GoogleAuthProvider();
+    //     firebase.auth().signInWithPopup(provider).then(function(result) {
+    //         // This gives you a Google Access Token. You can use it to access the Google API.
+    //         var token = result.credential.accessToken;
+    //         // The signed-in user info.
+    //         var user = result.user;
+    //         // ...
+    //       }).catch(function(error) {
+    //         // Handle Errors here.
+    //         var errorCode = error.code;
+    //         var errorMessage = error.message;
+    //         // The email of the user's account used.
+    //         var email = error.email;
+    //         // The firebase.auth.AuthCredential type that was used.
+    //         var credential = error.credential;
+    //         // ...
+    //       });
+    //       firebase.auth().signInWithRedirect(provider);
+    //       firebase.auth().getRedirectResult().then(function(result) {
+    //         if (result.credential) {
+    //           // This gives you a Google Access Token. You can use it to access the Google API.
+    //           var token = result.credential.accessToken;
+    //           // ...
+    //         }
+    //         // The signed-in user info.
+    //         var user = result.user;
+    //       }).catch(function(error) {
+    //         // Handle Errors here.
+    //         var errorCode = error.code;
+    //         var errorMessage = error.message;
+    //         // The email of the user's account used.
+    //         var email = error.email;
+    //         // The firebase.auth.AuthCredential type that was used.
+    //         var credential = error.credential;
+    //         // ...
+    //       });
+    // }
+
+    handlePasswordReset = e => {
+        firebase.auth().sendPasswordResetEmail(this.state.email)
     }
 
     handleSubmit = (e) => {
@@ -40,10 +83,10 @@ class LogIn extends Component {
             .catch(error => {
                 this.setState({ error })
             })
-
     }
+
     render() {
-        const { authError, auth } = this.props
+        //const { authError, auth } = this.props
         // if (auth.uid)
         //     return <Redirect to='/' />
 
@@ -60,7 +103,8 @@ class LogIn extends Component {
                         <input type="password" id="password" onChange={this.handleChange} />
                     </div>
                     <div className="input-field">
-                        <button className="btn blue lighten-1 z-depth-0">Log in</button>
+                        <button className="btn blue lighten-1 z-depth-0">Log in</button>&nbsp;&nbsp;
+                        <a href="/#" onClick={() => this.handlePasswordReset()}>Forgot password</a>
                         <div className="red-text center">
                             {this.state.error ? <p>{this.state.error.message}</p> : null}
                         </div>
