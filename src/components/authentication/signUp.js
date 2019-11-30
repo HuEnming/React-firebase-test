@@ -6,9 +6,11 @@ import React, { Component } from 'react'
 //import { withRouter } from 'react-router-dom'
 //import { Link } from 'react-router-dom'
 //import Firebase, { FirebaseContext } from '../../components/firebase/firebase'
-import firebase from '../firebase/firebase'
+//import firebase from '../firebase/firebase'
+import { FirebaseContext } from '../../contexts/firebaseContext'
 
 class SignUp extends Component {
+    static contextType = FirebaseContext
 
     state = {
         firstName: '',
@@ -31,12 +33,12 @@ class SignUp extends Component {
         //Firebase.initializeApp(config);
         //this.props.signUp(this.state)
         const { email, password,firstName,lastName } = this.state
-        console.log(firebase)
-        firebase.auth()
+        this.context.auth
             .createUserWithEmailAndPassword(email, password)
             .then(authUser => {
                 // Create a user in your Firebase realtime database
-                return firebase.database().ref('users/' + authUser.user.uid).set({
+                return this.context.db.collection('users').doc(authUser.user.uid).set({
+                //return firebase.database().ref('users/' + authUser.user.uid).set({
                     firstName,
                     lastName,
                   });

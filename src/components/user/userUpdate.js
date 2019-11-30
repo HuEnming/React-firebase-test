@@ -1,8 +1,9 @@
 import React, { Component } from 'react'
-import firebase from '../firebase/firebase'
+//import firebase from '../firebase/firebase'
+import { FirebaseContext } from '../../contexts/firebaseContext'
 
 class UserUpdate extends Component {
-
+    static contextType = FirebaseContext
     state = {
         firstName: '',
         lastName: '',
@@ -14,22 +15,25 @@ class UserUpdate extends Component {
     }
 
     componentDidMount() {
-        this.removeAuthListener = firebase.auth().onAuthStateChanged((user) => {
+        this.removeAuthListener = this.context.auth.onAuthStateChanged((user) => {
             //()=>{} is necessary, can't use function(){} there, for reasons of 'this' 
             if (user) {
                 this.setState({ userId: user.uid })
                 //console.log(user.uid)
-                let userRef = firebase.database().ref(`users/${user.uid}`)
-                //console.log(UserRef)
-                userRef.once('value', (snapshot) => {
-                    //console.log(snapshot.val())
-                    //setState add props without cover previous value
-                    //this.setState((preState)=>{return {user:{...preState.user,...snapshot.val()}}})
-                    this.setState((preState) => ({ ...preState.userId, ...snapshot.val() })
-                    )
-                    //this.setState({ user: { id: user.uid,... snapshot.val()} })
-                    console.log(this.state)
-                });
+                let userRef = this.context.db.collection('users').doc(user.uid).get()
+                    //let userRef = firebase.database().ref(`users/${user.uid}`)
+                    //console.log(UserRef)
+                    //let updateUser = userRef.update({ ...preState.userId, ...snapshot.val() });
+                    //userRef.once('value', (snapshot) => {
+                    .then(doc => {
+                        //console.log(snapshot.val())
+                        //setState add props without cover previous value
+                        //this.setState((preState)=>{return {user:{...preState.user,...snapshot.val()}}})
+                        this.setState((preState) => ({ ...preState.userId, ...doc })
+                        )
+                        //this.setState({ user: { id: user.uid,... snapshot.val()} })
+                        console.log(this.state)
+                    });
             } else {
                 this.props.history.push('/');
             }
@@ -87,7 +91,7 @@ class UserUpdate extends Component {
         e.preventDefault()
         const { firstName, lastName } = this.state
         //firebase.database().ref('users').child(this.state.userId)
-        firebase.database().ref(`users/${this.state.userId}`)
+        let updateUser = this.context.db.collection('users').doc(this.state.userId)
             .update({
                 firstName,
                 lastName,
@@ -122,7 +126,7 @@ class UserUpdate extends Component {
                     <h5 className="grey-text text-darken-3">Update Information</h5>
                     <div className="input-field">
                         <label className="active" htmlFor="firstName">First Name</label>
-                        <input type="text" id="firstName" value={this.state.firstName||''} onChange={this.handleChange} />
+                        <input type="text" id="firstName" value={this.state.firstName || ''} onChange={this.handleChange} />
                     </div>
                     <div className="input-field">
                         <input type="text" id="lastName" value={this.state.lastName || ''} onChange={this.handleChange} />

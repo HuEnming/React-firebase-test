@@ -2,10 +2,11 @@ import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import LoggedInLinks from './loggedInLinks'
 import LoggedOutLinks from './loggedOutLinks'
-import { auth } from '../firebase/firebase'
+import { FirebaseContext } from '../../contexts/firebaseContext'
 
 
 class Navbar extends Component {
+    static contextType = FirebaseContext
     state = {
         user: null,
         error: null
@@ -13,7 +14,7 @@ class Navbar extends Component {
     }
 
     componentDidMount() {
-        this.listener = auth.onAuthStateChanged(user => {
+        this.listener = this.context.auth.onAuthStateChanged(user => {
             if (user) {
                 this.setState({ user })
             }

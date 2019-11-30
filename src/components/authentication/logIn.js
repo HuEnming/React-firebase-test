@@ -1,14 +1,16 @@
 import React, { Component } from 'react'
+import { FirebaseContext } from '../../contexts/firebaseContext'
 //import { connect } from 'react-redux'
 //import { logIn } from '../../store/actions/authActions'
 //import { Redirect } from 'react-router-dom'
 //import { FirebaseContext } from '../firebase'
 //import { withFirebase } from '../firebase/firebase'
 //import PropTypes from 'prop-types'
-import firebase from '../firebase/firebase'
+//import firebase from '../firebase/firebase'
 
 class LogIn extends Component {
-
+    static contextType = FirebaseContext
+    
     state = {
         email: '',
         password: '',
@@ -61,16 +63,16 @@ class LogIn extends Component {
     // }
 
     handlePasswordReset = e => {
-        firebase.auth().sendPasswordResetEmail(this.state.email)
+        this.context.auth.sendPasswordResetEmail(this.state.email)
     }
 
     handleSubmit = (e) => {
         e.preventDefault()
-        console.log(firebase)
+        //console.log(firebase)
         const { email, password } = this.state;
-        console.log(email, password)
+        //console.log(email, password)
         //this.props.firebase
-        firebase.auth()
+        this.context.auth
             .signInWithEmailAndPassword(email, password)
             .then(() => {
                 this.setState({
@@ -89,7 +91,7 @@ class LogIn extends Component {
         //const { authError, auth } = this.props
         // if (auth.uid)
         //     return <Redirect to='/' />
-
+        //console.log(this.context.auth)
         return (
             <div className="container">
                 <form onSubmit={this.handleSubmit} className="white">

@@ -1,11 +1,12 @@
 import React, { Component } from 'react'
-import firebase from '../firebase/firebase'
+import { FirebaseContext } from '../../contexts/firebaseContext'
+//import firebase,{db} from '../firebase/firebase'
 import axios from 'axios'
 
 class AddMeal extends Component {
-
+    static contextType = FirebaseContext
     state = {
-        userId:'',
+        userId: '',
         foodName: '',
         amount: 0,
         mealTime: '',
@@ -14,15 +15,26 @@ class AddMeal extends Component {
         description: '',
         error: null
     }
-    
+
     componentWillMount() {
-        this.removeAuthListener = firebase.auth().onAuthStateChanged((user) => {
+        this.removeAuthListener = this.context.auth.onAuthStateChanged((user) => {
             if (user) {
                 this.setState({ userId: user.uid })
             } else {
                 this.props.history.push('/');
             }
         })
+    }
+
+    formatDate(dateArg) {
+        const date = new Date(dateArg);
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        const formatMonth = month < 10 ? `0${month}` : month;
+        const formatDay = day < 10 ? `0${day}` : day;
+    
+        return `${year}-${formatMonth}-${formatDay}`
     }
 
     componentWillUnmount() {
@@ -37,12 +49,15 @@ class AddMeal extends Component {
 
     handleSubmit = e => {
         e.preventDefault()
-        const { foodName, mealTime, mealDate, amount, description, userId } = this.state
+        const { foodName, mealTime, description, userId } = this.state
+        const amount = Number(this.state.amount)
+        let mealDate = this.formatDate(Date(this.state.mealDate))
+        console.log(mealDate)
         const url = `https://api.edamam.com/api/food-database/parser?ingr=${foodName} 
         &app_id=9ccfd3ea&app_key=422e0ba66ae6c563f47a9fe391a437f0`
         axios.get(url).then(response => {
             const result = response.data
-            
+
             //const nutrients = result.nutrients
             const imgHints = result.hints.filter((item) => { return item.food.hasOwnProperty('image') })
             const imgUrl = imgHints.length > 0 ? imgHints[1].food.image : ''
@@ -55,13 +70,22 @@ class AddMeal extends Component {
                 fat: nutrients.FAT,
                 cholesterol: nutrients.CHOCDF,
                 fibre: nutrients.FIBTG
-            },imgUrl]
-        }).then(([nutrients,imgUrl]) => {
+            }, imgUrl]
+        }).then(([nutrients, imgUrl]) => {
             const timestamp = new Date().toLocaleString()
-            console.log(timestamp)
-            firebase.database().ref('meals/').push({
+            //console.log(timestamp)
+            // firebase.database().ref('meals/').push({
+            //     amount, foodName, mealTime, mealDate, nutrients, description, imgUrl, userId, timestamp
+            // })
+
+            // Add a new document with a generated id.
+            this.context.db.collection('meals').add({
                 amount, foodName, mealTime, mealDate, nutrients, description, imgUrl, userId, timestamp
-            })
+                })
+            //     .then(ref => {
+            //     console.log('Added document with ID: ', ref.id);
+            // });
+
         })
             .then(() => {
                 this.props.history.push('/');
@@ -89,7 +113,7 @@ class AddMeal extends Component {
                     </div>
                     <div className="input-field">
                         <select className="browser-default" id="mealTime" onChange={this.handleChange} >
-                            <option value="breakfast">Breakfast</option>
+                            <option value="breakfast" selected="selected">Breakfast</option>
                             <option value="lunch">Lunch</option>
                             <option value="dinner">Dinner</option>
                         </select>

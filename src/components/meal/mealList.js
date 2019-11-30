@@ -1,8 +1,9 @@
 import React, { Component } from 'react'
-import firebase from '../firebase/firebase'
+//import firebase from '../firebase/firebase'
+import { FirebaseContext } from '../../contexts/firebaseContext'
 
 class MealList extends Component {
-
+    static contextType = FirebaseContext
     state = {
         //userId: '',
         mealLsit: null,
@@ -10,17 +11,37 @@ class MealList extends Component {
     }
 
     componentDidMount() {
-        this.removeAuthListener = firebase.auth().onAuthStateChanged((user) => {
+        this.removeAuthListener = this.context.auth.onAuthStateChanged((user) => {
             //()=>{} is necessary, can't use function(){} there, for reasons of 'this' 
             if (user) {
                 //this.setState({ userId: user.uid })
                 let mealLsit = []
-                firebase.database().ref().child('meals')
-                    .orderByChild('userId').equalTo(user.uid).on('child_added', (snapshot) => {
-                        mealLsit.push({ ...snapshot.val(), mealId: snapshot.key })
+                let mealLsitRef = this.context.db.collection('meals');
+                let query = mealLsitRef.where('userId', '==', user.uid).get()
+                    .then(snapshot => {
+                        if (snapshot.empty) {
+                            console.log('No matching documents.');
+                            return;
+                        }
+                        console.log(snapshot)
+                        snapshot.forEach(doc => {
+                            console.log(doc.id, '=>', doc.data());
+                            mealLsit.push({ ...doc.data(), mealId: doc.id })
+                            this.setState((preState) => ({ ...preState, mealLsit, }))
+                        });
+                        //mealLsit.push({ ...snapshot.val(), mealId: snapshot.key })
                         //console.log(snapshot.val())
-                        this.setState((preState) => ({ ...preState, mealLsit, }))
+                        //this.setState((preState) => ({ ...preState, mealLsit, }))
                     })
+                    .catch(err => {
+                        console.log('Error getting documents', err);
+                    });
+                // firebase.database().ref().child('meals')
+                //     .orderByChild('userId').equalTo(user.uid).on('child_added', (snapshot) => {
+                //         mealLsit.push({ ...snapshot.val(), mealId: snapshot.key })
+                //         //console.log(snapshot.val())
+                //         this.setState((preState) => ({ ...preState, mealLsit, }))
+                //     })
             } else {
                 this.props.history.push('/');
             }
@@ -37,7 +58,8 @@ class MealList extends Component {
         //     console.log(data)
         //firebase.database().ref(`meals/${foodId}`).remove()
         //   })
-        firebase.database().ref(`meals/${foodId}`).remove()
+        let deleteDoc = this.context.db.collection('meals').doc(foodId).delete()
+        //firebase.database().ref(`meals/${foodId}`).remove()
             .then(() => {
                 let mealLsit = this.state.mealLsit.filter(x => x.mealId !== foodId)
                 this.setState({ mealLsit })
